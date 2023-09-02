@@ -175,7 +175,29 @@ def manhattan(camino, meta) :
     # TU CODIGO AQUI - Devuelve la suma de distancias manhattan
     # entre todos los elementos del ultimo estado del camnino  y la meta
 
-    return 0
+    # Obtiene el último estado del camino
+    estado_actual = camino[-1]
+    #print("ultimo estado del camino:", estado_actual) 
+
+    # Inicializa la suma de distancias Manhattan
+    suma_distancias = 0
+
+    # Recorre las filas y columnas de los estados actual y meta
+    for i in range(len(estado_actual)):
+        for j in range(len(estado_actual[i])):
+            valor = estado_actual[i][j]
+                # Encuentra la posición del valor en el estado objetivo (meta)
+            x_meta, y_meta = None, None
+            for k in range(len(meta)):
+                if valor in meta[k]:
+                    x_meta, y_meta = k, meta[k].index(valor)
+                    break
+                # Calcula la distancia Manhattan y la agrega a la suma
+            distancia_manhattan = abs(i - x_meta) + abs(j - y_meta)
+            suma_distancias += distancia_manhattan
+
+    return suma_distancias
+
 
 
 # NO CAMBIAR FIRMA DE ESTE METODO (el calificador automatico lo va a usar)
@@ -288,10 +310,10 @@ print(nuevo_camino)
 # Tests
 #######################################
 
-##meta = [[1,2,3],[4,5,6],[7,8,0]]
+meta = [[1,2,3],[4,5,6],[7,8,0]]
 #inicio = [[1,2,3],[4,0,6],[7,5,8]]
 #inicio = [[0,1,2],[3,4,5],[6,7,8]]
-##inicio = [[8,0,6],[5,4,7],[2,3,1]]
+inicio = [[8,0,6],[5,4,7],[2,3,1]]
 
 
 #inicio = [[2,8.3],[1,6,4],[7,0,5]]
@@ -299,14 +321,17 @@ print(nuevo_camino)
 #inicio = [[0,1,3],[4,2,5],[7,8,6]]
 #meta = [[1,2,3],[8,0,4],[7,6,5]]
 
-##print(manhattan([inicio], meta))
+print(manhattan([inicio], meta))
 
 
 #print(solvable(inicio))
 
+""" mi test
 inicio = [[1,2,3],[4,5,6],[7,8,0]]
 resultados = sucesores(inicio)
 print(resultados)
+"""
+
 """
 print('UC-BFS 8-PUZZlLE')
 begin = current_time()
