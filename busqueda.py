@@ -367,10 +367,10 @@ def dist_ciudades(camino,meta):
 
 # Distancia Euclidiana entre la ciudad ingresada y Bucarest
 def dist_a_bucarest(ciudad) :
-    ROMANIA_EUC = {'arad': 366, 'bucarest': 0, 'craiova': 160, 'dobreta': 242, 'eforie': 161, 
+    ROMANIA_EUC = {'a': 366, 'bucarest': 0, 'craiova': 160, 'dobreta': 242, 'eforie': 161, 
           'fagaras': 176, 'guirgiu': 77, 'hirsova':151, 'iasi': 226, 'lugoj': 244, 'mehadia': 241,
           'neamt': 234, 'oradea':380, 'pitesti':100, 'rimnicu vilcea': 193, 'sibiu':253, 'timisoara':329,
-          'urziceni': 80, 'vaslui': 199, 'zerind':374}
+          'u': 80, 'vaslui': 199, 'zerind':374}
     return ROMANIA_EUC[ciudad]
 
 # Esto es basicamente una lista de adyacencia (un grafo) con todas las distancias entre ciudades
@@ -393,9 +393,47 @@ def adyacentes_romania(ciudad) :
                     'vaslui':(('urziceni',142),('iasi',92)),
                     'iasi':(('vaslui',92),('neamt',87)),
                     'oradea':(('zerind',71),('sibiu',151)) }
-    return ROMANIA_ADY[ciudad] 
+    return ROMANIA_ADY.get(ciudad, ())
 
+def adyacentes_ciudades(ciudad) :
+    ROMANIA_ADY = { 'arad': (('zerind',"timisoara"),('timisoara',"sibiu"),('sibiu',"sibiu")),
+                    'timisoara': (('arad'),('lugoj')),
+                    'lugoj':(('timisoara'),('mehadia')),
+                    'mehadia':(('lugoj'),('dobreta')),
+                    'dobreta':(('mehadia',75),('craiova',120)),
+                    'craiova':(('dobreta',120),('rimnicu vilcea', 146),('pitesti', 138)),
+                    'pitesti':(('craiova',138),('rimnicu vilcea', 97),('bucarest',101)),
+                    'rimnicu vilcea':(('craiova',146),('pitesti',97),('sibiu',80)),
+                    'sibiu':(('arad',140),('oradea',151),('fagaras',99),('rimnicu vilcea', 80)),
+                    'zerind':(('arad',75),('oradea',71)),
+                    'fagaras':(('sibiu',99),('bucarest',211)),
+                    'bucarest':(('giurgui',90),('pitesti',101),('fagaras',211),('urziceni',85)),
+                    'urziceni':(('bucarest',85),('hirsova',98),('vaslui',142)),
+                    'hirsova':(('urziceni',98),('eforie',86)),
+                    'vaslui':(('urziceni',142),('iasi',92)),
+                    'iasi':(('vaslui',92),('neamt',87)),
+                    'oradea':(('zerind',71),('sibiu',151)) }
+    return ROMANIA_ADY.get(ciudad, ())
 
+# Función para obtener sucesores válidos desde una ciudad
+def sucesores_ciudades(ciudad):
+    return adyacentes_ciudades(ciudad)
+
+# Función de heurística usando distancia euclidiana
+def heuristica_fn(camino,meta):
+    ciudad_actual = camino[-1]
+    return dist_a_bucarest(ciudad_actual)
+
+# Función de costo acumulado
+def costo_camino_fn(camino):
+    costo = 0
+    for i in range(1, len(camino)):
+        ciudad_actual, ciudad_anterior = camino[i], camino[i - 1]
+        for adyacente, distancia in adyacentes_romania(ciudad_anterior):
+            if adyacente == ciudad_actual:
+                costo += distancia
+                break
+    return costo
 ##################
 # PROBLEMA TRIVIAL
 #
@@ -457,6 +495,9 @@ begin = current_time()
 solucion = a_estrella(inicio,meta, bad_tiles, sucesores)
 print(solucion, current_time()-begin)
 """
+inicio_ciudades = 'arad'
+meta_ciudades = 'bucharest'
+
 """
 print('UC-BFS ciudades')
 begin = current_time()
@@ -465,7 +506,7 @@ begin = current_time()
 """
 print('A* Dist Eculidiana Ciudades')
 begin = current_time()
-solucion = a_estrella(inicio_ciudades, meta_ciudades, euclidiana,suc_ciudades, costo_camino)
+solucion = a_estrella(inicio_ciudades, meta_ciudades, heuristica_fn,sucesores_ciudades, costo_camino_fn)
 print(solucion, current_time()-begin)
 
 """
