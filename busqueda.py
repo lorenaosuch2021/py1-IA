@@ -238,7 +238,7 @@ def a_estrella(inicio, meta, heuristica_fn, sucesores_fn=sucesores, costo_camino
         # Verifica si el estado actual es el estado objetivo
         if estado_actual == meta:
             print ("!SOLUCION")
-            return num_estados_recorridos, acciones_actual  # Solución encontrada
+            return num_estados_recorridos, inicio + acciones_actual  # Solución encontrada
 
         # Marca el estado actual como visitado
         estado_actual_tupla = tuple(map(tuple, estado_actual))  # Convertir la lista en una tupla inmutable
@@ -324,7 +324,19 @@ def bad_tiles(camino,meta):
     
     # TU CODIGO AQUI - Devuelve el numero de fichas mal ubicadas en el 
     # ultimo estado
-    return sum([1 for i in range(1, 9) if i != camino.estado[i]])
+    # Obtiene el último estado del camino
+    ultimo_estado = camino
+    
+    # Inicializa el contador de fichas mal ubicadas
+    fichas_mal_ubicadas = 0
+    
+    # Compara cada ficha del último estado con la ficha correspondiente en el estado objetivo
+    for i in range(len(ultimo_estado)):
+        for j in range(len(ultimo_estado[i])):
+            if ultimo_estado[i][j] != meta[i][j]:
+                fichas_mal_ubicadas += 1
+    
+    return fichas_mal_ubicadas
     
 
 # Utilitario que revisa si tu estado es resolvible (en este caso supone que la meta
@@ -392,23 +404,7 @@ def adyacentes_romania(ciudad) :
 # Este ejemplo es bueno para depurar
 
 # Estado inicial y objetivo
-"""
-inicio = [1]
-meta = [5]
 
-# Imprime el último elemento de la lista `inicio` correctamente
-print(inicio[-1], inicio[-1])
-
-def suc(camino):
-    # Genera un nuevo sucesor agregando 1 al último elemento del camino actual
-    v = camino[:]
-    v.append(camino[-1] + 1)  # Corregido para agregar 1 al último elemento
-    return v  # Retorna el nuevo camino
-
-# Llamamos a la función `suc` con el estado inicial y lo imprimimos
-nuevo_camino = suc(inicio)
-print(nuevo_camino)
-"""
 
 
 #begin = current_time()
@@ -423,13 +419,13 @@ print(nuevo_camino)
 
 meta = [[1,2,3],[4,5,6],[7,8,0]]
 inicio = [[1,2,3],[4,0,6],[7,5,8]]
-#inicio = [[0,1,2],[3,4,5],[6,7,8]]
-#inicio = [[8,0,6],[5,4,7],[2,3,1]]
+#-inicio = [[0,1,2],[3,4,5],[6,7,8]]
+#-inicio = [[8,0,6],[5,4,7],[2,3,1]]
 
 
-#inicio = [[2,8.3],[1,6,4],[7,0,5]]
+#+inicio = [[2,8,3],[1,6,4],[7,0,5]]
 
-#inicio = [[0,1,3],[4,2,5],[7,8,6]]
+#+inicio = [[0,1,3],[4,2,5],[7,8,6]]
 #meta = [[1,2,3],[8,0,4],[7,6,5]]
 
 #print(manhattan([inicio], meta))
@@ -448,27 +444,33 @@ print('UC-BFS 8-PUZZlLE')
 begin = current_time()
 solucion = uc_bfs(inicio, meta, sucesores)
 print(solucion, current_time()-begin)
-"""
+
 
 print('A* Manhattan 8-Puzzle')
 begin = current_time()
 solucion = a_estrella(inicio,meta, manhattan, sucesores)
 print(solucion, current_time()-begin)
 
-""""
+
 print('A* Bad Tiles 8-Puzzle')
 begin = current_time()
 solucion = a_estrella(inicio,meta, bad_tiles, sucesores)
 print(solucion, current_time()-begin)
-
+"""
+"""
 print('UC-BFS ciudades')
 begin = current_time()
 #solucion = uc_bfs(inicio_ciudades, meta_ciudades, suc_ciudades, costo_camino)
 #print(solucion, current_time()-begin))
-
+"""
 print('A* Dist Eculidiana Ciudades')
 begin = current_time()
-#solucion = a_estrella(inicio_ciudades, meta_ciudades, tu_heuristica, suc_ciudades, costo_camino)
-#print(solucion, current_time()-begin))
-"""
+solucion = a_estrella(inicio_ciudades, meta_ciudades, euclidiana,suc_ciudades, costo_camino)
+print(solucion, current_time()-begin)
 
+"""
+print('A* Dist Eculidiana Ciudades')
+begin = current_time()
+solucion = a_estrella(inicio_ciudades, meta_ciudades, tu_heuristica, suc_ciudades, costo_camino)
+print(solucion, current_time()-begin)
+"""
