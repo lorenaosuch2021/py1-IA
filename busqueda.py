@@ -15,7 +15,7 @@
 import heapq
 import time
 from math import *
-
+from queue import PriorityQueue
 
 ######
 # UTILITARIOS
@@ -74,12 +74,23 @@ def sucesores(camino_original) :
     # INGRESA TU CODIGO AQUI
 
     # Devuelve una lista de caminos a tus soluciones
-    
+
+    # Obtiene el último estado del camino original
+    c=contar_corchetes(str(camino_original))
+    t=contar_sublistas(c)
+   
+    if t == 1:
+        ult_estado = camino_original
+    else:
+        for i, sublista in enumerate(camino_original):
+            ult_estado = camino_original[-1]
+
+    print("Ultimo estado fn sucesores: ", ult_estado)
     # Obtiene la posición del espacio en blanco (0)
     fila_vacia, col_vacia = None, None
-    for fila in range(len(camino_original)):
-        if 0 in camino_original[fila]:
-            fila_vacia, col_vacia = fila, camino_original[fila].index(0)
+    for fila in range(len(ult_estado)):
+        if 0 in ult_estado[fila]:
+            fila_vacia, col_vacia = fila, ult_estado[fila].index(0)
             break
     print("fila_vacia: ", fila_vacia)
     print("col_vacia: ", col_vacia)
@@ -90,24 +101,39 @@ def sucesores(camino_original) :
     sucesores = []
     for fila, col in movimientos:
         nueva_fila_vacia, nueva_col_vacia = fila_vacia + fila, col_vacia + col
-        if 0 <= nueva_fila_vacia < len(camino_original) and 0 <= nueva_col_vacia < len(camino_original[0]):
-            nuevo_estado = [fila.copy() for fila in camino_original]  # Clona el estado actual
+        if 0 <= nueva_fila_vacia < len(ult_estado) and 0 <= nueva_col_vacia < len(ult_estado[0]):
+            nuevo_estado = [fila.copy() for fila in ult_estado]  # Clona el estado actual
             nuevo_estado[fila_vacia][col_vacia], nuevo_estado[nueva_fila_vacia][nueva_col_vacia] = nuevo_estado[nueva_fila_vacia][nueva_col_vacia], nuevo_estado[fila_vacia][col_vacia]
-            print("nuevo estado: ", nuevo_estado)
+            print("Nuevo estado  fn sucesores: ", nuevo_estado)
             sucesores.append(nuevo_estado)
     
     # Devuelve una lista de caminos a los sucesores
-    sucesores.append(camino_original)
-    for suc in sucesores:
-        print("contenido de sucesores: ", suc)
+    sucesores.append(ult_estado)
+    #for suc in sucesores:
+       #print("Contenido de sucesores: ", suc)
+
     sucesores.reverse()
     resultado = []
     # Itera sobre la lista original para generar las sublistas
     for i in range(len(sucesores) - 1):
         sublista = [sucesores[i], sucesores[i + 1]]
         resultado.append(sublista)
-    
+    print("Return fn sucesores: ", resultado)
     return resultado
+
+def contar_corchetes(lista):
+    count = 0
+    for elemento in lista:
+        if isinstance(elemento, list):
+            count += contar_corchetes(elemento)
+    return count + lista.count('[')
+
+def contar_sublistas(num):
+    count = 0
+    if num == 4:
+        return 1
+    elif num == 9:
+        return 2
 ######
 # RESOLVEDOR GENERAL DE PROBLEMAS
 ######
@@ -132,12 +158,73 @@ def uc_bfs(inicio, meta, sucesores_fn=sucesores, costo_camino_fn=len, max_prof=1
     # TU CODIGO AQUI - Devuelve el numero de estados que exploraste
     # y una lista de estados indicando los pasos a la solucion (el camino a la solucion)
 
+    # Inicializa un conjunto para mantener un registro de los estados visitados
+    estados_visitados = set()
 
-     num_estados_recorridos = 0
-     solucion= None
-     return (num_estados_recorridos, solucion)
+    # Inicializa una cola de prioridad para realizar la búsqueda de costo uniforme
+    cola_prioridad = PriorityQueue()
+    # Agrega el estado inicial a la cola de prioridad con un costo inicial de 0
+    cola_prioridad.put((0, [inicio]))
+    nuevo_camino = []
+    # Inicializa el contador de estados recorridos
+    num_estados_recorridos = 0
 
+    while not cola_prioridad.empty():
+        print("En while")
+        # Obtiene el camino actual y su costo desde la cola de prioridad
+        costo_actual, camino_actual = cola_prioridad.get()
+        print("costo_actual: ", costo_actual)
+        print("camino actual: ", camino_actual)
+
+        c=contar_corchetes(str(camino_actual[-1]))
+        t=contar_sublistas(c)
     
+        # Obtiene el estado actual del camino
+        repite = 0
+        if t == 1:
+            print("t es 1")
+            estado_actual = camino_actual[-1]    
+        
+        # Verifica si el estado actual es el estado objetivo
+        if repite == 0:
+            if estado_actual == meta:
+                print("Solucion encontrada!!!")
+                return num_estados_recorridos, camino_actual  # Solución encontrada
+
+            # Marca el estado actual como visitado
+            print("------------------------------------------")
+            print("ESTADO ACTUAL VISITADO:", estado_actual)
+            print("------------------------------------------")
+        
+            estado_actual_tupla = tuple(map(tuple, estado_actual))
+            estados_visitados.add(estado_actual_tupla)
+        
+            # Genera los sucesores y los agrega a la cola de prioridad si no se han visitado
+            for sucesor in sucesores_fn(estado_actual):
+                for i in range(len(sucesor)):
+                        print("******************************************")
+                        print("==============en for, sucesor: ", sucesor)
+                        print("==============en for, sucesor: ", i, "++", sucesor[i])
+                        print("******************************************")
+                        sucesor_tupla = tuple(map(tuple, map(tuple, sucesor[i])))  # Convertir las listas anidadas en tuplas anidadas
+                        if sucesor_tupla not in estados_visitados:
+                            print("====En if sucesor_tupla: ", sucesor_tupla)
+                            nuevo_costo = costo_actual + 1 #cada movimiento implica cambiar una pieza de lugar:
+                            print("### nuevo costo: ", nuevo_costo)
+                            nuevo_camino = camino_actual + [sucesor[i]]
+                            cola_prioridad.put((nuevo_costo, nuevo_camino))
+
+            # Incrementa el contador de estados recorridos
+            num_estados_recorridos += 1
+            print("!num_estados_recorridos: ", num_estados_recorridos)
+            # Verifica si se alcanzó la profundidad máxima
+            if num_estados_recorridos >= max_prof:
+                print("Evitar buche infinito")
+                break  # Evitar bucle infinito en caso de no encontrar una solución
+
+    # Si llegamos aquí, no se encontró una solución
+    print("--- sin solucion")
+    return num_estados_recorridos, None
 
 
 # NO CAMBIAR FIRMA DE ESTE METODO (el calificador automatico lo va a usar)
@@ -213,8 +300,8 @@ def bad_tiles(camino,meta):
     
     # TU CODIGO AQUI - Devuelve el numero de fichas mal ubicadas en el 
     # ultimo estado
-
-    return 0
+    return sum([1 for i in range(1, 9) if i != camino.estado[i]])
+    
 
 # Utilitario que revisa si tu estado es resolvible (en este caso supone que la meta
 # es la forma [[1,2,3],[4,5,6],[7,8,0]] pero obviamente esto no siempre es el caso.
@@ -311,9 +398,9 @@ print(nuevo_camino)
 #######################################
 
 meta = [[1,2,3],[4,5,6],[7,8,0]]
-#inicio = [[1,2,3],[4,0,6],[7,5,8]]
+inicio = [[1,2,3],[4,0,6],[7,5,8]]
 #inicio = [[0,1,2],[3,4,5],[6,7,8]]
-inicio = [[8,0,6],[5,4,7],[2,3,1]]
+##inicio = [[8,0,6],[5,4,7],[2,3,1]]
 
 
 #inicio = [[2,8.3],[1,6,4],[7,0,5]]
@@ -321,7 +408,7 @@ inicio = [[8,0,6],[5,4,7],[2,3,1]]
 #inicio = [[0,1,3],[4,2,5],[7,8,6]]
 #meta = [[1,2,3],[8,0,4],[7,6,5]]
 
-print(manhattan([inicio], meta))
+#print(manhattan([inicio], meta))
 
 
 #print(solvable(inicio))
@@ -332,12 +419,13 @@ resultados = sucesores(inicio)
 print(resultados)
 """
 
-"""
+
 print('UC-BFS 8-PUZZlLE')
 begin = current_time()
 solucion = uc_bfs(inicio, meta, sucesores)
 print(solucion, current_time()-begin)
 
+"""
 print('A* Manhattan 8-Puzzle')
 begin = current_time()
 solucion = a_estrella(inicio,meta, manhattan, sucesores)
