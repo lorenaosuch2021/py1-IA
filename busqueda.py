@@ -168,63 +168,40 @@ def uc_bfs(inicio, meta, sucesores_fn=sucesores, costo_camino_fn=len, max_prof=1
     nuevo_camino = []
     # Inicializa el contador de estados recorridos
     num_estados_recorridos = 0
+     # Inicializa una lista para mantener todos los estados recorridos
+    estados_recorridos = []
 
     while not cola_prioridad.empty():
-        print("En while")
-        # Obtiene el camino actual y su costo desde la cola de prioridad
         costo_actual, camino_actual = cola_prioridad.get()
-        print("costo_actual: ", costo_actual)
-        print("camino actual: ", camino_actual)
+        print("camino actual== ", camino_actual)
+        estado_actual = camino_actual[-1]
+        print("ESTADO ACTUAL== ", estado_actual)
+        if estado_actual == meta:
+            # Devuelve el número de estados recorridos y el camino
+            # Para ver estados recorridos devolver estados_recorridos
+            return num_estados_recorridos, camino_actual
 
-        c=contar_corchetes(str(camino_actual[-1]))
-        t=contar_sublistas(c)
-    
-        # Obtiene el estado actual del camino
-        repite = 0
-        if t == 1:
-            print("t es 1")
-            estado_actual = camino_actual[-1]    
-        
-        # Verifica si el estado actual es el estado objetivo
-        if repite == 0:
-            if estado_actual == meta:
-                print("Solucion encontrada!!!")
-                return num_estados_recorridos, camino_actual  # Solución encontrada
+        estado_actual_tupla = tuple(map(tuple, estado_actual))
+        estados_visitados.add(estado_actual_tupla)
 
-            # Marca el estado actual como visitado
-            print("------------------------------------------")
-            print("ESTADO ACTUAL VISITADO:", estado_actual)
-            print("------------------------------------------")
-        
-            estado_actual_tupla = tuple(map(tuple, estado_actual))
-            estados_visitados.add(estado_actual_tupla)
-        
-            # Genera los sucesores y los agrega a la cola de prioridad si no se han visitado
-            for sucesor in sucesores_fn(estado_actual):
-                for i in range(len(sucesor)):
-                        print("******************************************")
-                        print("==============en for, sucesor: ", sucesor)
-                        print("==============en for, sucesor: ", i, "++", sucesor[i])
-                        print("******************************************")
-                        sucesor_tupla = tuple(map(tuple, map(tuple, sucesor[i])))  # Convertir las listas anidadas en tuplas anidadas
-                        if sucesor_tupla not in estados_visitados:
-                            print("====En if sucesor_tupla: ", sucesor_tupla)
-                            nuevo_costo = costo_actual + 1 #cada movimiento implica cambiar una pieza de lugar:
-                            print("### nuevo costo: ", nuevo_costo)
-                            nuevo_camino = camino_actual + [sucesor[i]]
-                            cola_prioridad.put((nuevo_costo, nuevo_camino))
+        estados_recorridos.append(estado_actual)
 
-            # Incrementa el contador de estados recorridos
-            num_estados_recorridos += 1
-            print("!num_estados_recorridos: ", num_estados_recorridos)
-            # Verifica si se alcanzó la profundidad máxima
-            if num_estados_recorridos >= max_prof:
-                print("Evitar buche infinito")
-                break  # Evitar bucle infinito en caso de no encontrar una solución
+        for sucesor in sucesores_fn(estado_actual):
+            for i in range(len(sucesor)):
+                print("sucesor for===",i,"          ", sucesor[i])
+                sucesor_tupla = tuple(map(tuple, map(tuple, sucesor[i])))
+                if sucesor_tupla not in estados_visitados:
+                    print("dentro del if")
+                    nuevo_costo = costo_actual + 1
+                    nuevo_camino = camino_actual + [sucesor[i]]
+                    cola_prioridad.put((nuevo_costo, nuevo_camino))
 
-    # Si llegamos aquí, no se encontró una solución
-    print("--- sin solucion")
-    return num_estados_recorridos, None
+        num_estados_recorridos += 1
+
+        if num_estados_recorridos >= max_prof:
+            break
+
+    return num_estados_recorridos,estados_recorridos
 
 
 # NO CAMBIAR FIRMA DE ESTE METODO (el calificador automatico lo va a usar)
@@ -242,10 +219,58 @@ def a_estrella(inicio, meta, heuristica_fn, sucesores_fn=sucesores, costo_camino
      # problema (Nota: puede resolver CUALQUIER PROBLEMA no solo 8-Puzzle)
      
      # Pistas: te servira heapq y set
+     # Inicializa un conjunto para mantener un registro de los estados visitados
+    estados_visitados = set()
 
-     num_estados_recorridos = 0
-     solucion= None
-     return (num_estados_recorridos, solucion)
+    # Inicializa una cola de prioridad para realizar la búsqueda de A*
+    cola_prioridad = []
+    # Agrega el estado inicial a la cola de prioridad con un costo inicial de 0 y una lista vacía de acciones
+    heapq.heappush(cola_prioridad, (0, inicio, []))
+
+    # Inicializa el contador de estados recorridos
+    num_estados_recorridos = 0
+
+    while cola_prioridad:
+        # Obtiene el nodo actual desde la cola de prioridad
+        costo_actual, estado_actual, acciones_actual = heapq.heappop(cola_prioridad)
+
+        print ("==========ESTADO ACTUAL               : ", estado_actual)
+        # Verifica si el estado actual es el estado objetivo
+        if estado_actual == meta:
+            print ("!SOLUCION")
+            return num_estados_recorridos, acciones_actual  # Solución encontrada
+
+        # Marca el estado actual como visitado
+        estado_actual_tupla = tuple(map(tuple, estado_actual))  # Convertir la lista en una tupla inmutable
+        estados_visitados.add(estado_actual_tupla)
+
+
+        # Genera los sucesores y los agrega a la cola de prioridad si no se han visitado
+        for sucesor, accion in sucesores_fn(estado_actual):
+            print ("\n                SUCESOR: ", accion)
+           
+            if tuple(map(tuple, accion)) not in estados_visitados:
+                print ("en if")
+                # Calcula el costo acumulado hasta este sucesor
+                nuevo_costo = costo_actual + 1
+                # Calcula el valor heurístico estimado desde este sucesor hasta el objetivo
+                heuristica = heuristica_fn(accion,meta)
+                print ("Heuristica:", heuristica)
+                # Calcula la función de costo total (f = g + h)
+                costo_total = nuevo_costo + heuristica
+                print ("costo:total:", costo_total, "     nuevo_costo: ", nuevo_costo)
+                # Agrega el sucesor a la cola de prioridad con su costo total y acciones acumuladas
+                heapq.heappush(cola_prioridad, (costo_total, accion, acciones_actual + [accion]))
+
+        # Incrementa el contador de estados recorridos
+        num_estados_recorridos += 1
+
+        # Verifica si se alcanzó la profundidad máxima
+        if num_estados_recorridos >= max_prof:
+            break  # Evitar bucle infinito en caso de no encontrar una solución
+
+    # Si llegamos aquí, no se encontró una solución
+    return num_estados_recorridos, None
 
 
 ######
@@ -263,9 +288,8 @@ def manhattan(camino, meta) :
     # entre todos los elementos del ultimo estado del camnino  y la meta
 
     # Obtiene el último estado del camino
-    estado_actual = camino[-1]
-    #print("ultimo estado del camino:", estado_actual) 
-
+    estado_actual = camino
+   
     # Inicializa la suma de distancias Manhattan
     suma_distancias = 0
 
@@ -400,7 +424,7 @@ print(nuevo_camino)
 meta = [[1,2,3],[4,5,6],[7,8,0]]
 inicio = [[1,2,3],[4,0,6],[7,5,8]]
 #inicio = [[0,1,2],[3,4,5],[6,7,8]]
-##inicio = [[8,0,6],[5,4,7],[2,3,1]]
+#inicio = [[8,0,6],[5,4,7],[2,3,1]]
 
 
 #inicio = [[2,8.3],[1,6,4],[7,0,5]]
@@ -419,18 +443,19 @@ resultados = sucesores(inicio)
 print(resultados)
 """
 
-
+"""
 print('UC-BFS 8-PUZZlLE')
 begin = current_time()
 solucion = uc_bfs(inicio, meta, sucesores)
 print(solucion, current_time()-begin)
-
 """
+
 print('A* Manhattan 8-Puzzle')
 begin = current_time()
 solucion = a_estrella(inicio,meta, manhattan, sucesores)
 print(solucion, current_time()-begin)
 
+""""
 print('A* Bad Tiles 8-Puzzle')
 begin = current_time()
 solucion = a_estrella(inicio,meta, bad_tiles, sucesores)
