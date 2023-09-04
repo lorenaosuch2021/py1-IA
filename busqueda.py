@@ -75,7 +75,8 @@ def sucesores(camino_original) :
 
     # Devuelve una lista de caminos a tus soluciones
 
-    # Obtiene el último estado del camino original
+    # Obtiene el último estado del camino original para eso se tiene en cuenta su posicion en la lista 
+    # de acuerdo a los corchetes
     c=contar_corchetes(str(camino_original))
     t=contar_sublistas(c)
    
@@ -85,15 +86,16 @@ def sucesores(camino_original) :
         for i, sublista in enumerate(camino_original):
             ult_estado = camino_original[-1]
 
-    print("Ultimo estado fn sucesores: ", ult_estado)
+    #print("Ultimo estado fn sucesores: ", ult_estado)
     # Obtiene la posición del espacio en blanco (0)
     fila_vacia, col_vacia = None, None
     for fila in range(len(ult_estado)):
         if 0 in ult_estado[fila]:
             fila_vacia, col_vacia = fila, ult_estado[fila].index(0)
             break
-    print("fila_vacia: ", fila_vacia)
-    print("col_vacia: ", col_vacia)
+    #print("fila_vacia: ", fila_vacia)
+    #print("col_vacia: ", col_vacia)
+
     # Genera los movimientos posibles (arriba, abajo, izquierda, derecha)
     movimientos = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     
@@ -104,7 +106,7 @@ def sucesores(camino_original) :
         if 0 <= nueva_fila_vacia < len(ult_estado) and 0 <= nueva_col_vacia < len(ult_estado[0]):
             nuevo_estado = [fila.copy() for fila in ult_estado]  # Clona el estado actual
             nuevo_estado[fila_vacia][col_vacia], nuevo_estado[nueva_fila_vacia][nueva_col_vacia] = nuevo_estado[nueva_fila_vacia][nueva_col_vacia], nuevo_estado[fila_vacia][col_vacia]
-            print("Nuevo estado  fn sucesores: ", nuevo_estado)
+            #print("Nuevo estado  fn sucesores: ", nuevo_estado)
             sucesores.append(nuevo_estado)
     
     # Devuelve una lista de caminos a los sucesores
@@ -118,7 +120,7 @@ def sucesores(camino_original) :
     for i in range(len(sucesores) - 1):
         sublista = [sucesores[i], sucesores[i + 1]]
         resultado.append(sublista)
-    print("Return fn sucesores: ", resultado)
+    #print("Return fn sucesores: ", resultado)
     return resultado
 
 def contar_corchetes(lista):
@@ -134,6 +136,7 @@ def contar_sublistas(num):
         return 1
     elif num == 9:
         return 2
+
 ######
 # RESOLVEDOR GENERAL DE PROBLEMAS
 ######
@@ -173,9 +176,9 @@ def uc_bfs(inicio, meta, sucesores_fn=sucesores, costo_camino_fn=len, max_prof=1
 
     while not cola_prioridad.empty():
         costo_actual, camino_actual = cola_prioridad.get()
-        print("camino actual== ", camino_actual)
+        #print("camino actual== ", camino_actual)
         estado_actual = camino_actual[-1]
-        print("ESTADO ACTUAL== ", estado_actual)
+        #print("ESTADO ACTUAL== ", estado_actual)
         if estado_actual == meta:
             # Devuelve el número de estados recorridos y el camino
             # Para ver estados recorridos devolver estados_recorridos
@@ -188,10 +191,11 @@ def uc_bfs(inicio, meta, sucesores_fn=sucesores, costo_camino_fn=len, max_prof=1
 
         for sucesor in sucesores_fn(estado_actual):
             for i in range(len(sucesor)):
-                print("sucesor for===",i,"          ", sucesor[i])
+                #print("sucesor for===",i,"          ", sucesor[i])
                 sucesor_tupla = tuple(map(tuple, map(tuple, sucesor[i])))
                 if sucesor_tupla not in estados_visitados:
-                    print("dentro del if")
+                   # print("dentro del if")
+                    #nuevo_costo = costo_actual + costo_camino_fn(estado_actual,sucesor[i]) #para busqueda de caminos
                     nuevo_costo = costo_actual + 1
                     nuevo_camino = camino_actual + [sucesor[i]]
                     cola_prioridad.put((nuevo_costo, nuevo_camino))
@@ -234,12 +238,13 @@ def a_estrella(inicio, meta, heuristica_fn, sucesores_fn=sucesores, costo_camino
         # Obtiene el nodo actual desde la cola de prioridad
         costo_actual, estado_actual, acciones_actual = heapq.heappop(cola_prioridad)
 
-        print ("==========ESTADO ACTUAL               : ", estado_actual)
+        #print ("==========ESTADO ACTUAL               : ", estado_actual)
         # Verifica si el estado actual es el estado objetivo
         if estado_actual == meta:
             print ("!SOLUCION")
-            return num_estados_recorridos, inicio + acciones_actual  # Solución encontrada
-
+            #return num_estados_recorridos, inicio + acciones_actual  # Solución encontrada puzzle
+            return num_estados_recorridos, [inicio] + acciones_actual #solucion para caminos ciudades
+            
         # Marca el estado actual como visitado
         estado_actual_tupla = tuple(map(tuple, estado_actual))  # Convertir la lista en una tupla inmutable
         estados_visitados.add(estado_actual_tupla)
@@ -247,19 +252,21 @@ def a_estrella(inicio, meta, heuristica_fn, sucesores_fn=sucesores, costo_camino
 
         # Genera los sucesores y los agrega a la cola de prioridad si no se han visitado
         for sucesor, accion in sucesores_fn(estado_actual):
-            print ("\n                SUCESOR: ", accion)
-           
+            #print ("\n                accion: ", accion)
+            #print ("\n                SUCESOR: ", sucesor)
             if tuple(map(tuple, accion)) not in estados_visitados:
-                print ("en if")
+                #print ("en if")
                 # Calcula el costo acumulado hasta este sucesor
+                #nuevo_costo = costo_actual + costo_camino_fn(estado_actual,accion)
                 nuevo_costo = costo_actual + 1
                 # Calcula el valor heurístico estimado desde este sucesor hasta el objetivo
                 heuristica = heuristica_fn(accion,meta)
-                print ("Heuristica:", heuristica)
-                # Calcula la función de costo total (f = g + h)
+                #print ("Heuristica:", heuristica)
+                # Calcula la función de costo total (f = g + h) 
                 costo_total = nuevo_costo + heuristica
-                print ("costo:total:", costo_total, "     nuevo_costo: ", nuevo_costo)
+                #print ("costo:total:", costo_total)
                 # Agrega el sucesor a la cola de prioridad con su costo total y acciones acumuladas
+                #print ("ACCIONES ACTUAL:", acciones_actual)
                 heapq.heappush(cola_prioridad, (costo_total, accion, acciones_actual + [accion]))
 
         # Incrementa el contador de estados recorridos
@@ -317,6 +324,11 @@ def euclidiana(camino, meta) :
     # TU CODIGO AQUI - Devuelve la suma de distancias Euclidiana
     # entre todos los elementos del ultimo estado del camnino  y la meta
 
+    """
+     Las distancias entre ciudades solo indican cuánto cuesta viajar de una ciudad a otra, 
+     pero no proporcionan información sobre las coordenadas espaciales de las ciudades en sí.
+     Por lo tanto, no se puede calcular la distancia euclediana directamente
+    """
     return 0
  
 # NO CAMBIAR FIRMA DE ESTE METODO (el calificador automatico lo va a usar)
@@ -337,7 +349,37 @@ def bad_tiles(camino,meta):
                 fichas_mal_ubicadas += 1
     
     return fichas_mal_ubicadas
-    
+
+"""
+Mejora de manhattan:solo se consideran las piezas que están "fuera de lugar" en sus filas y columnas objetivo.
+"""
+def heuristica_propia(inicio, meta):
+    heuristica = 0  
+
+    # Itera a través de las filas y columnas del estado inicial
+    for i in range(len(inicio)):
+        for j in range(len(inicio)):
+            valor_actual = inicio[i][j]  # Obtiene el valor actual en la posición (i, j)
+
+            # Encuentra la posición objetivo del valor actual
+            objetivo_i, objetivo_j = encontrar_posicion(meta, valor_actual)
+
+            # Si la posición actual no coincide con la posición objetivo
+            if i != objetivo_i or j != objetivo_j:
+                # Calcula la distancia Manhattan entre la posición actual y la posición objetivo
+                distancia = abs(i - objetivo_i) + abs(j - objetivo_j)
+                # Suma la distancia a la heurística total
+                heuristica += distancia
+
+    return heuristica
+
+def encontrar_posicion(estado, valor):
+    # Función para encontrar la fila y columna de un valor en el estado
+    for i in range(len(estado)):
+        for j in range(len(estado)):
+            if estado[i][j] == valor:
+                return i, j  # Devuelve la posición (fila, columna) donde se encuentra el valor
+
 
 # Utilitario que revisa si tu estado es resolvible (en este caso supone que la meta
 # es la forma [[1,2,3],[4,5,6],[7,8,0]] pero obviamente esto no siempre es el caso.
@@ -360,17 +402,30 @@ def solvable(estado) :
 
 
 # NO CAMBIAR FIRMA DE ESTE METODO (el calificador automatico lo va a usar)
-def dist_ciudades(camino,meta):
+def dist_ciudades(inicio,meta):
     # TU CODIGO AQUI
     # Usa funciones especiales para retornar la distancia
-    return 0
+    # Utiliza el grafo de distancias entre ciudades para encontrar la distancia desde inicio a meta
+    # Obtén la lista de adyacencia del nodo de inicio
+    adyacencia_inicio = adyacentes_romania(inicio)
 
-# Distancia Euclidiana entre la ciudad ingresada y Bucarest
+    # Busca la ciudad meta en la lista de adyacencia del nodo de inicio
+    for ciudad, distancia in adyacencia_inicio:
+        print("CIUDAD, DISTANCIA:",ciudad, distancia)
+        print("CIUDAD, META:",ciudad, meta)
+        if ciudad == meta:
+            print("DISTANCIA:",distancia)
+            return distancia
+
+    # Si la ciudad meta no se encuentra en la lista de adyacencia
+    return 0 
+
+# Distancia heuristica
 def dist_a_bucarest(ciudad) :
-    ROMANIA_EUC = {'a': 366, 'bucarest': 0, 'craiova': 160, 'dobreta': 242, 'eforie': 161, 
+    ROMANIA_EUC = {'arad': 366, 'bucarest': 0, 'craiova': 160, 'dobreta': 242, 'eforie': 161, 
           'fagaras': 176, 'guirgiu': 77, 'hirsova':151, 'iasi': 226, 'lugoj': 244, 'mehadia': 241,
           'neamt': 234, 'oradea':380, 'pitesti':100, 'rimnicu vilcea': 193, 'sibiu':253, 'timisoara':329,
-          'u': 80, 'vaslui': 199, 'zerind':374}
+          'urziceni': 80, 'vaslui': 199, 'zerind':374}
     return ROMANIA_EUC[ciudad]
 
 # Esto es basicamente una lista de adyacencia (un grafo) con todas las distancias entre ciudades
@@ -395,45 +450,37 @@ def adyacentes_romania(ciudad) :
                     'oradea':(('zerind',71),('sibiu',151)) }
     return ROMANIA_ADY.get(ciudad, ())
 
+#Se utiliza para obtener los sucesores, sigue la estructura del puzzle
+#[[[A],[B]],[[B],[C]],[[C],[D]]]
 def adyacentes_ciudades(ciudad) :
     ROMANIA_ADY = { 'arad': (('zerind',"timisoara"),('timisoara',"sibiu"),('sibiu',"sibiu")),
-                    'timisoara': (('arad'),('lugoj')),
-                    'lugoj':(('timisoara'),('mehadia')),
-                    'mehadia':(('lugoj'),('dobreta')),
-                    'dobreta':(('mehadia',75),('craiova',120)),
-                    'craiova':(('dobreta',120),('rimnicu vilcea', 146),('pitesti', 138)),
-                    'pitesti':(('craiova',138),('rimnicu vilcea', 97),('bucarest',101)),
-                    'rimnicu vilcea':(('craiova',146),('pitesti',97),('sibiu',80)),
-                    'sibiu':(('arad',140),('oradea',151),('fagaras',99),('rimnicu vilcea', 80)),
-                    'zerind':(('arad',75),('oradea',71)),
-                    'fagaras':(('sibiu',99),('bucarest',211)),
-                    'bucarest':(('giurgui',90),('pitesti',101),('fagaras',211),('urziceni',85)),
-                    'urziceni':(('bucarest',85),('hirsova',98),('vaslui',142)),
-                    'hirsova':(('urziceni',98),('eforie',86)),
-                    'vaslui':(('urziceni',142),('iasi',92)),
-                    'iasi':(('vaslui',92),('neamt',87)),
-                    'oradea':(('zerind',71),('sibiu',151)) }
+                    'timisoara': (('arad',"lugoj"),('lugoj',"lugoj")),
+                    'lugoj':(('timisoara',"mehadia"),('mehadia',"mehadia")),
+                    'mehadia':(('lugoj',"dobreta"),('dobreta',"dobreta")),
+                    'dobreta':(('mehadia',"craiova"),('craiova',"craiova")),
+                    'craiova':(('dobreta',"rimnicu vilcea"),('rimnicu vilcea',"pitesti" ),('pitesti', "pitesti")),
+                    'pitesti':(('craiova',"rimnicu vilcea"),('rimnicu vilcea', "bucarest"),('bucarest',"bucarest")),
+                    'rimnicu vilcea':(('craiova',"pitesti"),('pitesti',"sibiu"),('sibiu',"sibiu")),
+                    'sibiu':(('arad',"oradea"),('oradea',"fagaras"),('fagaras',"rimnicu vilcea"),('rimnicu vilcea', "rimnicu vilcea")),
+                    'zerind':(('arad',"oradea"),('oradea',"oradea")),
+                    'fagaras':(('sibiu',"bucarest"),('bucarest',"bucarest")),
+                    'bucarest':(('giurgui',"pitesti"),('pitesti',"fagaras"),('fagaras',"urziceni"),('urziceni',"urziceni")),
+                    'urziceni':(('bucarest',"hirsova"),('hirsova',"vaslui"),('vaslui',"vaslui")),
+                    'hirsova':(('urziceni',"eforie"),('eforie',"eforie")),
+                    'vaslui':(('urziceni',"iasi"),('iasi',"iasi")),
+                    'iasi':(('vaslui',"neamt"),('neamt',"neamt")),
+                    'oradea':(('zerind',"sibiu"),('sibiu',"sibiu")) }
     return ROMANIA_ADY.get(ciudad, ())
 
 # Función para obtener sucesores válidos desde una ciudad
 def sucesores_ciudades(ciudad):
     return adyacentes_ciudades(ciudad)
 
-# Función de heurística usando distancia euclidiana
+# Función para obtener la heurística
 def heuristica_fn(camino,meta):
-    ciudad_actual = camino[-1]
+    ciudad_actual = camino
     return dist_a_bucarest(ciudad_actual)
-
-# Función de costo acumulado
-def costo_camino_fn(camino):
-    costo = 0
-    for i in range(1, len(camino)):
-        ciudad_actual, ciudad_anterior = camino[i], camino[i - 1]
-        for adyacente, distancia in adyacentes_romania(ciudad_anterior):
-            if adyacente == ciudad_actual:
-                costo += distancia
-                break
-    return costo
+#print("+++++++++++++++++++++HEURISTICA: ", heuristica_fn("timisoara", " "))
 ##################
 # PROBLEMA TRIVIAL
 #
@@ -480,36 +527,42 @@ print(resultados)
 """
 print('UC-BFS 8-PUZZlLE')
 begin = current_time()
-solucion = uc_bfs(inicio, meta, sucesores)
+solucion = uc_bfs(inicio, meta, sucesores,1)
 print(solucion, current_time()-begin)
-
+"""
 
 print('A* Manhattan 8-Puzzle')
 begin = current_time()
-solucion = a_estrella(inicio,meta, manhattan, sucesores)
+solucion = a_estrella(inicio,meta, manhattan, sucesores,1)
 print(solucion, current_time()-begin)
 
 
+print('A* heuristica_propia 8-Puzzle')
+begin = current_time()
+solucion = a_estrella(inicio,meta, heuristica_propia, sucesores,1)
+print(solucion, current_time()-begin)
+
+"""
 print('A* Bad Tiles 8-Puzzle')
 begin = current_time()
-solucion = a_estrella(inicio,meta, bad_tiles, sucesores)
+solucion = a_estrella(inicio,meta, bad_tiles, sucesores,1)
 print(solucion, current_time()-begin)
 """
 inicio_ciudades = 'arad'
-meta_ciudades = 'bucharest'
+meta_ciudades = 'bucarest'
 
-"""
+""""
 print('UC-BFS ciudades')
 begin = current_time()
-#solucion = uc_bfs(inicio_ciudades, meta_ciudades, suc_ciudades, costo_camino)
-#print(solucion, current_time()-begin))
+solucion = uc_bfs(inicio_ciudades, meta_ciudades, sucesores_ciudades, dist_ciudades)
+print(solucion, current_time()-begin)
 """
+""""
 print('A* Dist Eculidiana Ciudades')
 begin = current_time()
-solucion = a_estrella(inicio_ciudades, meta_ciudades, heuristica_fn,sucesores_ciudades, costo_camino_fn)
+solucion = a_estrella(inicio_ciudades, meta_ciudades, heuristica_fn,sucesores_ciudades, dist_ciudades)
 print(solucion, current_time()-begin)
 
-"""
 print('A* Dist Eculidiana Ciudades')
 begin = current_time()
 solucion = a_estrella(inicio_ciudades, meta_ciudades, tu_heuristica, suc_ciudades, costo_camino)
